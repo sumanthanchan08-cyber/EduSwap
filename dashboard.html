@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | EDU SWAP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-body">
+    <nav class="navbar">
+        <div class="nav-brand">EDU SWAP</div>
+        <div class="nav-links">
+            <a href="sessions.html" class="btn btn-secondary btn-sm" style="border:none">My Sessions</a>
+            <span id="userCredits" class="credits-badge">Credits: 0</span>
+            <button id="logoutBtn" class="btn btn-secondary btn-sm">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Profile Header -->
+        <header class="dashboard-header">
+            <h1 id="welcomeMessage">Welcome, ...</h1>
+            <p>Manage your skills and find learning partners.</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- My Skills Section -->
+            <section class="dashboard-card" id="mySkillsSection">
+                <h2>My Skills</h2>
+                
+                <div class="skills-block">
+                    <h3>I can teach:</h3>
+                    <ul id="teachList" class="skill-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                    <form id="addTeachForm" class="inline-form">
+                        <input type="text" id="newTeachSkill" placeholder="Add a skill you can teach..." required>
+                        <button type="submit" class="btn btn-sm">Add</button>
+                    </form>
+                </div>
+
+                <div class="skills-block">
+                    <h3>I want to learn:</h3>
+                    <ul id="learnList" class="skill-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                    <form id="addLearnForm" class="inline-form">
+                        <input type="text" id="newLearnSkill" placeholder="Add a skill you want to learn..." required>
+                        <button type="submit" class="btn btn-sm">Add</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Skill Matching Section -->
+            <section class="dashboard-card" id="matchSection">
+                <h2>Available Partners</h2>
+                <div id="usersList" class="users-list">
+                    <!-- Populated by JS -->
+                    <p class="loading-text">Loading users...</p>
+                </div>
+            </section>
+
+            <!-- Incoming Requests Section -->
+            <section class="dashboard-card" id="requestsSection">
+                <h2>Incoming Requests</h2>
+                <div id="requestsList" class="requests-list">
+                    <!-- Populated by JS -->
+                    <p class="empty-text">No incoming requests.</p>
+                </div>
+            </section>
+
+            <!-- Sent Requests Section -->
+            <section class="dashboard-card" id="sentRequestsSection">
+                <h2>Sent Requests</h2>
+                <div id="sentRequestsList" class="requests-list">
+                    <!-- Populated by JS -->
+                    <p class="empty-text">No sent requests.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/skills.js"></script>
+    <script type="module" src="js/requests.js"></script>
+</body>
+</html>

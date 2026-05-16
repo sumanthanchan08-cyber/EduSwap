@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | My App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container wide">
+        <h1>Welcome to My App</h1>
+        <p>This is a modern, responsive frontend project demonstrating navigation and form handling.</p>
+        <div class="actions" id="authActions">
+            <a href="login.html" class="btn" id="loginBtn">Log In</a>
+            <a href="signup.html" class="btn btn-secondary" id="signupBtn">Sign Up</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "./js/firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => {
+            const authActions = document.getElementById('authActions');
+            if (user) {
+                authActions.innerHTML = `<a href="dashboard.html" class="btn">Go to Dashboard</a>`;
+            }
+        });
+    </script>
+</body>
+</html>

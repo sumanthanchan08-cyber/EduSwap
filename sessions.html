@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Sessions | EDU SWAP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-body">
+    <nav class="navbar">
+        <div class="nav-brand">EDU SWAP</div>
+        <div class="nav-links">
+            <a href="dashboard.html" class="btn btn-secondary btn-sm" style="border:none">Dashboard</a>
+            <span id="userCredits" class="credits-badge">Credits: ...</span>
+            <button id="logoutBtn" class="btn btn-secondary btn-sm">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Active Sessions</h1>
+            <p>Your confirmed learning and teaching sessions.</p>
+        </header>
+
+        <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+            <section class="dashboard-card">
+                <h2>My Sessions</h2>
+                <div id="sessionsList" class="sessions-list">
+                    <p class="loading-text">Loading your sessions...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/sessions.js"></script>
+</body>
+</html>
