@@ -10,53 +10,55 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
-
+function isAdmin() {
+  return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+}
     // Users Collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && isOwner(userId);
+      allow read: if isAuthenticated() || isAdmin();
+      allow create, update: if isAuthenticated() && (isOwner(userId) || isAdmin());
       allow delete: if false;
     }
 
     // Skill Requests Collection
     match /skillRequests/{requestId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow read: if isAuthenticated() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid || isAdmin()); 
+
       allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
-      allow update: if isAuthenticated() && 
-        (resource.data.receiverId == request.auth.uid || resource.data.senderId == request.auth.uid);
+      allow update: if isAuthenticated() && (resource.data.receiverId == request.auth.uid || resource.data.senderId == request.auth.uid || isAdmin()); 
+
       allow delete: if false;
     }
 
     // Sessions Collection
     match /sessions/{sessionId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid);
+      allow read: if isAuthenticated() && (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid || isAdmin()); 
+
       
       // Only the sender (learner in our logic) creates the session upon confirmation
       allow create: if isAuthenticated();
       
-      allow update: if isAuthenticated() && 
-        (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid);
+      allow update: if isAuthenticated() && (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid || isAdmin()); 
+
       allow delete: if false;
     }
 
     // Messages Collection
     match /messages/{messageId} {
-      allow read: if isAuthenticated(); // Should ideally verify session membership, but keeping simple for now
-      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+      allow read: if isAuthenticated() || isAdmin(); // Should ideally verify session membership, but keeping simple for now
+      allow create: if isAuthenticated() && (request.resource.data.senderId == request.auth.uid || isAdmin());
       allow update, delete: if false;
     }
 
     // WebRTC Calls Collection
     match /calls/{callId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() || isAdmin();
       
       match /offerCandidates/{candidateId} {
-        allow read, write: if isAuthenticated();
+        allow read, write: if isAuthenticated() || isAdmin();
       }
       match /answerCandidates/{candidateId} {
-        allow read, write: if isAuthenticated();
+        allow read, write: if isAuthenticated() || isAdmin();
       }
     }
   }

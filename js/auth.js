@@ -75,6 +75,8 @@ if (signupForm) {
 
 // --- Login Logic ---
 const loginForm = document.getElementById('loginForm');
+let isRedirecting = false; // Flag to prevent observer from interfering
+
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -89,13 +91,33 @@ if (loginForm) {
         
         if (!isValid) return;
 
+        isRedirecting = true; // Set flag BEFORE auth to prevent observer interference
+
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            alert('Login successful! Redirecting to dashboard...');
-            window.location.href = 'dashboard.html';
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            console.log("User logged in:", user.uid);
+            
+            // Check if user is admin
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            console.log("User document exists:", userDoc.exists());
+            console.log("User data:", userDoc.data());
+            console.log("Is admin:", userDoc.data()?.isAdmin);
+            
+            if (userDoc.exists() && userDoc.data().isAdmin === true) {
+                console.log("Admin user detected, redirecting to admin.html");
+                alert('Login successful! Redirecting to admin panel...');
+                window.location.href = 'admin.html';
+            } else {
+                console.log("Regular user, redirecting to dashboard.html");
+                alert('Login successful! Redirecting to dashboard...');
+                window.location.href = 'dashboard.html';
+            }
         } catch (error) {
             console.error("Error logging in:", error);
             showError('emailGroup', 'Invalid email or password.');
+            isRedirecting = false; // Reset flag on error
         }
     });
 }
@@ -105,12 +127,14 @@ const googleProvider = new GoogleAuthProvider();
 
 const handleGoogleLogin = async (e) => {
     e.preventDefault();
+    isRedirecting = true; // Set flag BEFORE auth to prevent observer interference
+    
     try {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
 
         // Check if user already exists in Firestore
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        let userDoc = await getDoc(doc(db, "users", user.uid));
         
         if (!userDoc.exists()) {
             // Create profile for new Google user
@@ -123,13 +147,22 @@ const handleGoogleLogin = async (e) => {
                 credits: 10,
                 createdAt: new Date().toISOString()
             });
+            // Re-fetch after creating
+            userDoc = await getDoc(doc(db, "users", user.uid));
         }
 
-        alert('Login successful! Redirecting...');
-        window.location.href = 'dashboard.html';
+        // Check if user is admin
+        if (userDoc.exists() && userDoc.data().isAdmin) {
+            alert('Login successful! Redirecting to admin panel...');
+            window.location.href = 'admin.html';
+        } else {
+            alert('Login successful! Redirecting to dashboard...');
+            window.location.href = 'dashboard.html';
+        }
     } catch (error) {
         console.error("Google Login Error:", error);
         alert("Failed to login with Google: " + error.message);
+        isRedirecting = false;
     }
 };
 
@@ -178,13 +211,21 @@ if (logoutBtn) {
 }
 
 // --- Auth State Observer for Protection ---
-onAuthStateChanged(auth, (user) => {
-    const isProtectedPage = window.location.pathname.includes('dashboard.html');
+onAuthStateChanged(auth, async (user) => {
+    if (isRedirecting) return; // Don't interfere with login redirect
+    
+    const isProtectedPage = window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('admin.html');
     const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html');
 
     if (user) {
         if (isAuthPage) {
-            window.location.href = 'dashboard.html';
+            // Check if user is admin
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().isAdmin) {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         }
     } else {
         if (isProtectedPage) {

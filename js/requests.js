@@ -30,6 +30,16 @@ async function sendRequest(receiverId) {
     const senderId = auth.currentUser.uid;
 
     try {
+        // Validate credit balance
+        const senderDoc = await getDoc(doc(db, "users", senderId));
+        if (senderDoc.exists()) {
+            const data = senderDoc.data();
+            if ((data.credits || 0) < 1) {
+                alert("You do not have enough credits to send a learning request. Teach others to earn credits!");
+                return;
+            }
+        }
+
         await addDoc(collection(db, "skillRequests"), {
             senderId: senderId,
             receiverId: receiverId,
@@ -91,10 +101,10 @@ function listenForIncomingRequests(uid) {
                 const senderName = senderDoc.exists() ? senderDoc.data().name : "Unknown User";
 
                  html += `
-                    <div class="request-card" style="border-color: #2ecc71;">
+                    <div class="request-card" style="border-color: var(--success); box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);">
                         <div class="user-info">
                             <h4>From: ${senderName}</h4>
-                            <p>Status: <strong style="color: #2ecc71">Session Confirmed!</strong></p>
+                            <p>Status: <strong style="color: var(--success)">Session Confirmed!</strong></p>
                         </div>
                         <a href="sessions.html" class="btn btn-sm">Go to Sessions</a>
                     </div>
@@ -139,16 +149,16 @@ function listenForSentRequests(uid) {
                     <div class="request-card">
                         <div class="user-info">
                             <h4>To: ${receiverName}</h4>
-                            <p>Status: <span style="color: #f39c12">Pending...</span></p>
+                            <p>Status: <span style="color: var(--warning)">Pending...</span></p>
                         </div>
                     </div>
                 `;
             } else if (req.status === 'accepted_by_receiver') {
                 html += `
-                    <div class="request-card" style="border-color: #2ecc71; background: #f0fdf4;">
+                    <div class="request-card" style="border-color: var(--success); background: rgba(16, 185, 129, 0.05);">
                         <div class="user-info">
                             <h4>To: ${receiverName}</h4>
-                            <p>Status: <strong style="color: #2ecc71">Accepted!</strong></p>
+                            <p>Status: <strong style="color: var(--success)">Accepted!</strong></p>
                             <p style="font-size: 0.8rem; margin-top: 5px;">Confirm to start the session.</p>
                         </div>
                         <button class="btn btn-sm confirm-session-btn" data-req="${reqId}" data-receiver="${req.receiverId}">Confirm Session</button>
@@ -193,13 +203,23 @@ async function respondToRequest(requestId, status) {
 
 async function confirmSession(requestId, receiverId) {
     try {
+        const senderId = auth.currentUser.uid;
+
+        // Check credits first
+        const userDoc = await getDoc(doc(db, "users", senderId));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if ((userData.credits || 0) < 1) {
+                alert("You do not have enough credits to confirm this session. Teach others to earn credits!");
+                return;
+            }
+        }
+
         // 1. Update request status
         const reqRef = doc(db, "skillRequests", requestId);
         await updateDoc(reqRef, { status: 'confirmed' });
 
         // 2. Create the Session Document
-        const senderId = auth.currentUser.uid;
-        
         await addDoc(collection(db, "sessions"), {
             requestId: requestId,
             learnerId: senderId, // Assume sender wants to learn
